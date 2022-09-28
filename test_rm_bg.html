@@ -1,0 +1,67 @@
+
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Hello OpenCV.js</title>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/selfie_segmentation.js" crossorigin="anonymous"></script>
+</head>
+<body>
+<h2>Hello OpenCV.js</h2>
+<div>
+  <!-- we create 1 image element, 1 canvas element and an image source -->
+  <div class="inputoutput">
+    <img id="imageSrc" alt="No Image" />
+    <div class="caption">imageSrc <input type="file" id="fileInput" name="file"/>
+  </div>
+</div>
+<div class="inputoutput">
+  <canvas id="canvasOutput" ></canvas>
+  <div class="caption">canvasOutput</div>
+</div>
+</div>
+<script type="text/javascript">
+   // Here starts javascript. We save the loaded image in a variable called
+   // imgElement 
+   let imgElement = document.getElementById('imageSrc');
+   let inputElement = document.getElementById('fileInput');
+   // We add a listener which starts when an image is loaded 
+   inputElement.addEventListener('change', (e) => {
+      imgElement.src = URL.createObjectURL(e.target.files[0]);
+   }, false);
+   imgElement.onload = function() {
+   let mat = cv.imread(imgElement);
+   mat = face2(mat,4,3);
+
+   cv.imshow('canvasOutput', mat);
+   mat.delete();
+   };
+
+   function face2(image, value1, value2)
+   {
+     let dst = new cv.Mat();
+     var dx = value1 * 5, fc = value1 * 12.5,  p = 0.1;
+     let temp1 = new cv.Mat(), temp2 = new cv.Mat(), temp3 = new cv.Mat(), temp4 = new cv.Mat(), temp22 = new cv.Mat(), temp44 = new cv.Mat();
+     cv.cvtColor(image, image, cv.COLOR_RGBA2RGB, 0);
+     cv.bilateralFilter(image, temp1, dx, fc, fc);
+     cv.subtract(temp1, image, temp22);
+     cv.add(temp22, new cv.Mat(image.rows, image.cols, image.type(), new cv.Scalar(128,128,128,128)), temp2);
+     cv.GaussianBlur(temp2, temp3, new cv.Size(2*value2-1,2*value2-1),0,0);
+     temp3.convertTo(temp44, temp3.type(),2,-255);
+     cv.add(image, temp44, temp4);
+     cv.addWeighted(image, p, temp4, 1-p, 0.0, dst);
+     cv.add(dst,new cv.Mat(image.rows, image.cols, image.type(), new cv.Scalar(10,10,10,0)), dst);
+     return dst;
+   }
+
+
+function onOpenCvReady() {
+  document.getElementById('status').innerHTML = 'OpenCV.js is ready.';
+}
+</script>
+<script async src="opencv.js" onload="onOpenCvReady();" type="text/javascript">
+</script>
+</body>
+</html>
